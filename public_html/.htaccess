@@ -1,0 +1,33 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # Remove index.php from URL
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+</IfModule>
+
+# Prevent direct access to sensitive files
+<FilesMatch "\.(sql|env|json)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect uploads directory - prevent PHP execution
+<Directory "uploads">
+    php_flag engine off
+    AddType text/plain .php .php3 .php4 .php5 .php6 .php7 .phtml .phps
+</Directory>
+
+# Enable gzip compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Set proper headers for security
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>

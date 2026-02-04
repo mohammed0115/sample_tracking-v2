@@ -1,0 +1,46 @@
+-- RFID Sample Tracking (PHP) schema
+
+CREATE DATABASE IF NOT EXISTS sample_tracking CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE sample_tracking;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  last_name VARCHAR(100) NOT NULL,
+  role ENUM('Admin','Operator','Viewer') NOT NULL DEFAULT 'Viewer',
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS rfid_tags (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  uid VARCHAR(64) NOT NULL UNIQUE,
+  is_active TINYINT(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS samples (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sample_number VARCHAR(50) NOT NULL UNIQUE,
+  sample_type VARCHAR(50) NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  person_name VARCHAR(100) NOT NULL,
+  collected_date DATE NOT NULL,
+  location VARCHAR(100) NOT NULL,
+  rfid_id INT NOT NULL UNIQUE,
+  status ENUM('pending','checked','approved','rejected') NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_samples_rfid FOREIGN KEY (rfid_id) REFERENCES rfid_tags(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  sample_id INT NULL,
+  action VARCHAR(100) NOT NULL,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_audit_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_audit_sample FOREIGN KEY (sample_id) REFERENCES samples(id) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB;
